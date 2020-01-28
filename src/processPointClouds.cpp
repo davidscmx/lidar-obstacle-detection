@@ -1,4 +1,4 @@
-// PCL lib Functions for processing point clouds 
+// PCL lib Functions for processing point clouds
 
 #include "processPointClouds.h"
 
@@ -41,12 +41,12 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
     region.setMax(maxPoint);
     region.setInputCloud(cloudFiltered);
     region.filter(indices);
-          
+
     pcl::PointIndices::Ptr inliers {new pcl::PointIndices};
     for (int point: indices)
     {
         inliers->indices.push_back(point);
-    }        
+    }
 
     pcl::ExtractIndices<PointT> extract;
     extract.setInputCloud (cloudRegion);
@@ -64,13 +64,13 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
 
 
 template<typename PointT>
-std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud) 
+std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud)
 {
     // TODO: Create two new point clouds, one cloud with obstacles and other with segmented plane
     typename pcl::PointCloud<PointT>::Ptr obstCloud (new pcl::PointCloud<PointT> ());
 
     typename pcl::PointCloud<PointT>::Ptr planeCloud (new pcl::PointCloud<PointT> ());
-    
+
 
     for(int index:inliers->indices)
     {
@@ -90,17 +90,17 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 
 
 template<typename PointT>
-std::pair<typename pcl::PointCloud<PointT>::Ptr, 
-typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SegmentPlane(typename pcl::PointCloud<PointT>::Ptr cloud, 
-int maxIterations, float distanceThreshold)
+std::pair<typename pcl::PointCloud<PointT>::Ptr,
+typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SegmentPlane(typename pcl::PointCloud<PointT>::Ptr cloud,
+const int maxIterations, const float distanceThreshold)
 {
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
-	
+
     // TODO:: Fill in this function to find inliers for the cloud.
 
-    pcl::SACSegmentation<pcl::PointXYZ> seg;
-    pcl::PointIndices::Ptr inliers(new pcl::PointIndices()); 
+    pcl::SACSegmentation<PointT> seg;
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
 
     seg.setOptimizeCoefficients(true);
@@ -115,7 +115,7 @@ int maxIterations, float distanceThreshold)
     seg.segment(*inliers, *coefficients);
     if (inliers->indices.size () == 0)
     {
-        std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;        
+        std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
     }
 
     auto endTime = std::chrono::steady_clock::now();
@@ -128,10 +128,8 @@ int maxIterations, float distanceThreshold)
 
 
 template<typename PointT>
-std::vector<typename pcl::PointCloud<PointT>::Ptr> 
-ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<PointT>::Ptr cloud, 
-                                       float clusterTolerance, 
-                                       int minSize, int maxSize)
+std::vector<typename pcl::PointCloud<PointT>::Ptr>
+ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<PointT>::Ptr cloud,float clusterTolerance, int minSize, int maxSize)
 {
 
     // Time clustering process
@@ -146,7 +144,7 @@ ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<PointT>::Ptr clo
 
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-    ec.setClusterTolerance(clusterTolerance); 
+    ec.setClusterTolerance(clusterTolerance);
     ec.setMinClusterSize(minSize);
     ec.setMaxClusterSize(maxSize);
     ec.setSearchMethod(tree);
@@ -156,7 +154,7 @@ ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<PointT>::Ptr clo
     // clusterIndices looks like a vector of vectors
     for (pcl::PointIndices getIndices: cluster_indices)
     {
-        typename pcl::PointCloud<PointT>::Ptr cloudCluster (new pcl::PointCloud<PointT>); 
+        typename pcl::PointCloud<PointT>::Ptr cloudCluster (new pcl::PointCloud<PointT>);
 
         for (int index : getIndices.indices)
         {

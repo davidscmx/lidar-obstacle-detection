@@ -1,6 +1,6 @@
 # Sensor Fusion Self-Driving Car Course
 
-<img src="media/ObstacleDetectionFPS.gif" width="700" height="400" />
+<img src="https://github.com/awbrown90/SensorFusionHighway/blob/master/media/ObstacleDetectionFPS.gif" width="700" height="400" />
 
 ### Welcome to the Sensor Fusion course for self-driving cars.
 
@@ -15,50 +15,17 @@ In this course we will be talking about sensor fusion, whch is the process of ta
 
 ## Installation
 
-### Ubuntu 
+### Linux Ubuntu 16
 
-```bash
-$> sudo apt install libpcl-dev
-$> cd ~
-$> git clone https://github.com/udacity/SFND_Lidar_Obstacle_Detection.git
-$> cd SFND_Lidar_Obstacle_Detection
-$> mkdir build && cd build
-$> cmake ..
-$> make
-$> ./environment
-```
+Install PCL, C++
 
-### Windows 
+The link here is very helpful, 
+https://larrylisky.com/2014/03/03/installing-pcl-on-ubuntu/
 
-http://www.pointclouds.org/downloads/windows.html
+A few updates to the instructions above were needed.
 
-### MAC
+* libvtk needed to be updated to libvtk6-dev instead of (libvtk5-dev). The linker was having trouble locating libvtk5-dev while building, but this might not be a problem for everyone.
 
-#### Install via Homebrew
-1. install [homebrew](https://brew.sh/)
-2. update homebrew 
-	```bash
-	$> brew update
-	```
-3. add  homebrew science [tap](https://docs.brew.sh/Taps) 
-	```bash
-	$> brew tap brewsci/science
-	```
-4. view pcl install options
-	```bash
-	$> brew options pcl
-	```
-5. install PCL 
-	```bash
-	$> brew install pcl
-	```
+* BUILD_visualization needed to be manually turned on, this link shows you how to do that,
+http://www.pointclouds.org/documentation/tutorials/building_pcl.php
 
-#### Prebuilt Binaries via Universal Installer
-http://www.pointclouds.org/downloads/macosx.html  
-NOTE: very old version 
-
-#### Build from Source
-
-[PCL Source Github](https://github.com/PointCloudLibrary/pcl)
-
-[PCL Mac Compilation Docs](http://www.pointclouds.org/documentation/tutorials/compiling_pcl_macosx.php)

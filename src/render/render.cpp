@@ -21,7 +21,9 @@ void renderHighway(pcl::visualization::PCLVisualizer::Ptr& viewer)
 }
 
 int countRays = 0;
-void renderRays(pcl::visualization::PCLVisualizer::Ptr& viewer, const Vect3& origin, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
+void renderRays(pcl::visualization::PCLVisualizer::Ptr& viewer, 
+				const Vect3& origin, 
+				const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 {
 
 	for(pcl::PointXYZ point : cloud->points)
@@ -40,9 +42,10 @@ void clearRays(pcl::visualization::PCLVisualizer::Ptr& viewer)
 	}
 }
 
-void renderPointCloud(pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string name, Color color)
+void renderPointCloud(pcl::visualization::PCLVisualizer::Ptr& viewer, 
+					  const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, 
+					  std::string name, Color color)
 {
-
   	viewer->addPointCloud<pcl::PointXYZ> (cloud, name);
   	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, name);
   	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, name);

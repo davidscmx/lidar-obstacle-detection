@@ -1,8 +1,7 @@
 /* \author Aaron Brown */
 // Quiz on implementing kd tree
 
-#include "../../render/render.h"
-
+#include "render/render.h"
 
 // Structure to represent node of kd tree
 struct Node
@@ -50,8 +49,6 @@ struct KdTree
 	{
 		insertHelper(&root,0,point,id);
  	}
-
-
 
 	void searchHelper(std::vector<float> target, Node* node,
 					   int depth, float distanceTol, std::vector<int> &ids)

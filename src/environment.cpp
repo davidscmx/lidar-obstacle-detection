@@ -70,7 +70,6 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
 
     for(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : cloudClusters)
     {
-        std::cout << "cluster size ";
         pointProcessor->numPoints(cluster);
         renderPointCloud(viewer,cluster,"obstCloud"+std::to_string(clusterId),colors[clusterId]);
         ++clusterId;
@@ -105,16 +104,29 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
         }
 	}
 
-    renderPointCloud(viewer, cloudInliers,"inliers",Color(1,0,0));
+    renderPointCloud(viewer, cloudInliers,"inliers", Color(1,0,0));
     renderPointCloud(viewer, cloudOutliers,"outliers",Color(0,1,0));
+
+    // kd-tree: preparation for clustering
+    KdTree* tree = new KdTree;
+
+    for(int i = 0; i < cloudOutliers->points.size(); i++)
+    {
+        // convert to vector
+        std::vector<float> point_vec = {0,0,0};
+        cloudOutliers->points[i].x = point_vec[0];
+        cloudOutliers->points[i].y = point_vec[0];
+        cloudOutliers->points[i].z = point_vec[0];
+
+    	tree->insert(point_vec, i);
+    }
+
 }
 
 //setAngle: SWITCH CAMERA ANGLE {XY, TopDown, Side, FPS}
 void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr &viewer)
 {
-
     viewer->setBackgroundColor (0, 0, 0);
-
     // set camera position and angle
     viewer->initCameraParameters();
     // distance away in meters

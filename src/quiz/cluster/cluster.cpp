@@ -72,8 +72,6 @@ void render2DTree(Node* node, pcl::visualization::PCLVisualizer::Ptr& viewer,
 
 		render2DTree(node->left,viewer, lowerWindow, iteration, depth+1);
 		render2DTree(node->right,viewer, upperWindow, iteration, depth+1);
-
-
 	}
 }
 
@@ -99,7 +97,6 @@ void clusterHelper(int index,
 	}
 }
 
-
 std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>> points,
 											   KdTree* tree, float distanceTol)
 {
@@ -108,7 +105,7 @@ std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<flo
 	std::vector<std::vector<int>> clusters;
 	std::vector<bool> processed(points.size(), false);
 	int i = 0;
-	while ( i < points.size())
+	while (i < points.size())
 	{
 		if (processed[i])
 		{

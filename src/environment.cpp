@@ -38,6 +38,7 @@ std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<flo
 	// TODO: Fill out this function to return list of indices for each cluster
 	// list of clusters
 	std::vector<std::vector<int>> clusters;
+
 	std::vector<bool> processed(points.size(), false);
 	int i = 0;
 	while (i < points.size())
@@ -128,7 +129,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 {
     ProcessPointClouds<pcl::PointXYZI>* pointProcessorI = new ProcessPointClouds<pcl::PointXYZI>();
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
+    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("/home/david/onlineLearning/SFND_Lidar_Obstacle_Detection/src/sensors/data/pcd/data_1/0000000000.pcd");
 
     // segment road
     const int maxIters = 100;
@@ -136,7 +137,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 
     std::unordered_set<int> inliers = RansacPlane(inputCloud, maxIters, distanceThreshold);
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr  cloudInliers(new pcl::PointCloud<pcl::PointXYZI>());
+    pcl::PointCloud<pcl::PointXYZI>::Ptr cloudInliers(new pcl::PointCloud<pcl::PointXYZI>());
 	pcl::PointCloud<pcl::PointXYZI>::Ptr cloudOutliers(new pcl::PointCloud<pcl::PointXYZI>());
 
 	for(int index = 0; index < inputCloud->points.size(); index++)
@@ -152,15 +153,12 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
         }
 	}
 
-    renderPointCloud(viewer, cloudInliers,"inliers", Color(1,0,0));
+    //renderPointCloud(viewer, cloudInliers,"inliers", Color(1,0,0));
     //renderPointCloud(viewer, cloudOutliers,"outliers",Color(0,1,0));
-
-
     // kd-tree: preparation for clustering
     KdTree* tree = new KdTree;
 
     const int dims = 3;
-    std::cout << "cloudOutliers->points.size() " << cloudOutliers->points.size() << std::endl;
 
     Eigen::Vector4f minPoint = Eigen::Vector4f(1.0f, 2.0f, 3.0f, 4.0f);
     Eigen::Vector4f maxPoint = Eigen::Vector4f(3.0f, 4.0f, 5.0f, 6.0f);
@@ -170,42 +168,38 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 
     std::cout << "filteredCloudOutliers->points.size() " << filteredCloudOutliers->points.size() << std::endl;
 
-    renderPointCloud(viewer, filteredCloudOutliers,"outliers",Color(0,1,0));
+    //renderPointCloud(viewer, filteredCloudOutliers,"outliers",Color(0,1,0));
 
     std::vector<std::vector<float>> point_vectors = {};
     for(int i = 0; i < filteredCloudOutliers->points.size(); i++)
     {
-        if (i % 100 == 0)
-        {
-            std::cout << "point  " << i << std::endl;
-        }
         // convert to vector
         std::vector<float> point_vec = {0,0,0};
-        cloudOutliers->points[i].x = point_vec[0];
-        cloudOutliers->points[i].y = point_vec[1];
-        cloudOutliers->points[i].z = point_vec[2];
+        filteredCloudOutliers->points[i].x = point_vec[0];
+        filteredCloudOutliers->points[i].y = point_vec[1];
+        filteredCloudOutliers->points[i].z = point_vec[2];
 
     	tree->insert(point_vec, i, dims);
         point_vectors.push_back(point_vec);
     }
-    std::cout << "after filling tree " << std::endl;
 
-    std::vector<std::vector<int>> clusters = euclideanCluster(point_vectors, tree, 3.0);
-
+    std::vector<std::vector<int>> clusters = euclideanCluster(point_vectors, tree, 0.75);
+    std::cout << "how many clusters were found " << clusters.size() << std::endl;
     std::vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
+    int clusterId = 0;
     for(std::vector<int> cluster : clusters)
   	{
   		pcl::PointCloud<pcl::PointXYZ>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZ>());
 
 		for (int indice: cluster)
 		{
-  			clusterCloud->points.push_back(pcl::PointXYZ(points[indice][0],points[indice][1],0));
+  			clusterCloud->points.push_back(pcl::PointXYZ(point_vectors[indice][0],point_vectors[indice][1],point_vectors[indice][2]));
 		}
   		renderPointCloud(viewer, clusterCloud,"cluster"+std::to_string(clusterId) , colors[clusterId%3]);
 
   		++clusterId;
   	}
-    */
+
 }
 
 //setAngle: SWITCH CAMERA ANGLE {XY, TopDown, Side, FPS}

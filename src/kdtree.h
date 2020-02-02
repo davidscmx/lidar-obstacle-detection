@@ -25,7 +25,7 @@ struct KdTree
 	: root(NULL)
 	{}
 
-	void insertHelper(Node** node, uint depth, std::vector<float> point, int id, int dims)
+	void insertHelper(Node** node, uint depth, std::vector<float> point, int id)
 	{
       	if(*node == NULL)
       	{
@@ -33,22 +33,22 @@ struct KdTree
 		}
       	else
       	{
-			uint cd = depth % dims;
+			uint cd = depth % 2;
 
 			if (point[cd] < (*node)->point[cd])
 			{
-				insertHelper( &((*node)->left) ,depth+1,point,id,dims);
+				insertHelper( &((*node)->left) ,depth+1,point,id);
 			}
       		else
       		{
-        		insertHelper( &((*node)->right) ,depth+1,point,id,dims);
+        		insertHelper( &((*node)->right) ,depth+1,point,id);
       		}
 		}
 	}
 
-	void insert(std::vector<float> point, int id, int dims)
+	void insert(std::vector<float> point, int id)
 	{
-		insertHelper(&root,0,point,id,dims);
+		insertHelper(&root,0,point,id);
  	}
 
 	void searchHelper2D(std::vector<float> target, Node* node,
@@ -129,7 +129,7 @@ struct KdTree
 	std::vector<int> search(std::vector<float> target, float distanceTol)
 	{
 		std::vector<int> ids;
-		searchHelper3D(target, root, 0, distanceTol, ids);
+		searchHelper2D(target, root, 0, distanceTol, ids);
 		return ids;
 	}
 };

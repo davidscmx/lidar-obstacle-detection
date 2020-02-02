@@ -129,8 +129,10 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 {
     ProcessPointClouds<pcl::PointXYZI>* pointProcessorI = new ProcessPointClouds<pcl::PointXYZI>();
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("/home/david/onlineLearning/SFND_Lidar_Obstacle_Detection/src/sensors/data/pcd/data_1/0000000000.pcd");
+    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->
+    loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");   
 
+   
     // segment road
     const int maxIters = 100;
     const float distanceThreshold = 0.20;
@@ -153,37 +155,37 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
         }
 	}
 
+    
+    Eigen::Vector4f minPoint = Eigen::Vector4f(-5, -6, -3, 1); 
+    Eigen::Vector4f maxPoint = Eigen::Vector4f( 5,  6,  2, 1);
+
+    pcl::PointCloud<pcl::PointXYZI>::Ptr cloudOutliersF = pointProcessorI->FilterCloud(cloudOutliers, 0.30, minPoint, maxPoint);
+
     //renderPointCloud(viewer, cloudInliers,"inliers", Color(1,0,0));
     //renderPointCloud(viewer, cloudOutliers,"outliers",Color(0,1,0));
     // kd-tree: preparation for clustering
+    
+    
     KdTree* tree = new KdTree;
-
-    const int dims = 3;
-
-    Eigen::Vector4f minPoint = Eigen::Vector4f(1.0f, 2.0f, 3.0f, 4.0f);
-    Eigen::Vector4f maxPoint = Eigen::Vector4f(3.0f, 4.0f, 5.0f, 6.0f);
-
-    pcl::PointCloud<pcl::PointXYZI>::Ptr filteredCloudOutliers =
-    pointProcessorI->FilterCloud(cloudOutliers, 0.5, minPoint, maxPoint);
-
-    std::cout << "filteredCloudOutliers->points.size() " << filteredCloudOutliers->points.size() << std::endl;
-
-    //renderPointCloud(viewer, filteredCloudOutliers,"outliers",Color(0,1,0));
-
+    const int dims = 2;
+    
+    std::cout << "cloudOutliersFilt->points.size() " << cloudOutliersF->points.size() << std::endl;
+    renderPointCloud(viewer, cloudOutliersF,"outliers",Color(0,1,0));
+      
     std::vector<std::vector<float>> point_vectors = {};
-    for(int i = 0; i < filteredCloudOutliers->points.size(); i++)
+    for(int i = 0; i < cloudOutliersF->points.size(); i++)
     {
         // convert to vector
         std::vector<float> point_vec = {0,0,0};
-        filteredCloudOutliers->points[i].x = point_vec[0];
-        filteredCloudOutliers->points[i].y = point_vec[1];
-        filteredCloudOutliers->points[i].z = point_vec[2];
+        cloudOutliersF->points[i].x = point_vec[0];
+        cloudOutliersF->points[i].y = point_vec[1];
+        cloudOutliersF->points[i].z = point_vec[2];
 
-    	tree->insert(point_vec, i, dims);
+    	tree->insert(point_vec, i);
         point_vectors.push_back(point_vec);
     }
-
-    std::vector<std::vector<int>> clusters = euclideanCluster(point_vectors, tree, 0.75);
+    std::cout << "Entering encl " << std::endl;
+    std::vector<std::vector<int>> clusters = euclideanCluster(point_vectors, tree, 0.60);
     std::cout << "how many clusters were found " << clusters.size() << std::endl;
     std::vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
     int clusterId = 0;
@@ -199,7 +201,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 
   		++clusterId;
   	}
-
+    
 }
 
 //setAngle: SWITCH CAMERA ANGLE {XY, TopDown, Side, FPS}

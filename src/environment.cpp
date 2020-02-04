@@ -11,51 +11,106 @@
 #include "kdtree.h"
 //#include "cluster.cpp"
 
-void clusterHelper(int index,
-				   const std::vector<std::vector<float>> points,
-				   std::vector<int> &cluster,
-				   std::vector<bool> &processed,
-				   KdTree* tree,
-				   const int distanceTol
-				   )
+//void clusterHelper(int index,
+//				   const std::vector<std::vector<float>> points,
+//				   std::vector<int> &cluster,
+//				   std::vector<bool> &processed,
+//				   KdTree* tree,
+//				   const float distanceTol
+//				   )
+//{
+//	processed[index] = true;
+//	cluster.push_back(index);
+//
+//	std::vector<int> nearest = tree->search(points[index], distanceTol);
+//
+//	for (int id: nearest)
+//	{
+//		if (!processed[id])
+//		{
+//			clusterHelper(id, points, cluster, processed, tree, distanceTol);
+//		}
+//	}
+//}
+//
+//std::vector<std::vector<int>> euclideanCluster(const //std::vector<std::vector<float>> points, KdTree* tree, float distanceTol)
+//{
+//	// TODO: Fill out this function to return list of indices for each cluster
+//	// list of clusters
+//	std::vector<std::vector<int>> clusters;
+//
+//	std::vector<bool> processed(points.size(), false);
+//	int i = 0;
+//	while (i < points.size())
+//	{
+//		if (processed[i])
+//		{
+//			i++;
+//			continue;
+//		}
+//
+//		std::vector<int> cluster;
+//        std::cout << "in euc points[0] " << points[0].size() << std::endl;
+//		clusterHelper(i, points, cluster, processed, tree, distanceTol);
+//        if (cluster.size() > 8)
+//        {
+//            clusters.push_back(cluster);
+//        }
+//
+//		i++;
+//	}
+//
+//	return clusters;
+//}
+
+
+void createCluster(const std::vector<std::vector<float>>& points, pcl::PointCloud<pcl::PointXYZ>::Ptr &cluster, int *flag, KdTree* tree, float distanceTol, int i)
 {
-	processed[index] = true;
-	cluster.push_back(index);
+    if(flag[i] == 1)
+        return;
 
-	std::vector<int> nearest = tree->search(points[index],distanceTol);
+    flag[i] = 1;
 
-	for (int id: nearest)
-	{
-		if (!processed[id])
-		{
-			clusterHelper(id, points, cluster, processed, tree, distanceTol);
-		}
-	}
+    pcl::PointXYZ z = {points[i][0], points[i][1], points[i][2]};
+    cluster->points.push_back(z);
+
+    std::vector<int> nearPoint = tree->search(points[i], distanceTol);
+
+    for(int i=0;i<nearPoint.size();i++)
+    {
+        if(flag[nearPoint[i]] == 0)
+            createCluster(points, cluster, flag, tree, distanceTol, nearPoint[i]);
+    }
 }
 
-std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>> points, KdTree* tree, float distanceTol)
+std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol, int minSize)
 {
-	// TODO: Fill out this function to return list of indices for each cluster
-	// list of clusters
-	std::vector<std::vector<int>> clusters;
+    // TODO: Fill out this function to return list of indices for each cluster
 
-	std::vector<bool> processed(points.size(), false);
-	int i = 0;
-	while (i < points.size())
-	{
-		if (processed[i])
-		{
-			i++;
-			continue;
-		}
+    // Inserting point into KD-Tree
+    for (int i=0; i<points.size(); i++)
+        tree->insert(points[i],i);
 
-		std::vector<int> cluster;
-		clusterHelper(i, points, cluster, processed, tree, distanceTol);
-		clusters.push_back(cluster);
-		i++;
-	}
+   std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters;
 
-	return clusters;
+    int size = points.size();
+    int flag[size];
+
+    for(int i=0;i<size;i++)
+        flag[i] = 0;
+
+    for(int i=0;i<size;i++)
+    {
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cluster(new pcl::PointCloud<pcl::PointXYZ>);
+
+        if(flag[i] == 0)
+        {
+            createCluster(points, cluster, flag, tree, distanceTol, i);
+            if(cluster->points.size() >= minSize)
+                clusters.push_back(cluster);
+        }
+    }
+    return clusters;
 }
 
 
@@ -127,24 +182,28 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
 
 void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 {
-    ProcessPointClouds<pcl::PointXYZI>* pointProcessorI = new ProcessPointClouds<pcl::PointXYZI>();
+    ProcessPointClouds<pcl::PointXYZ>* pointProcessor = new ProcessPointClouds<pcl::PointXYZ>();
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->
-    loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");   
+    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud = pointProcessor->
+    loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
 
-   
+    Eigen::Vector4f minVec = Eigen::Vector4f(-10, -6.2, -2, 1);
+    Eigen::Vector4f maxVec = Eigen::Vector4f(25, 7, 10, 1);
+
+    inputCloud = pointProcessor->FilterCloud(inputCloud, .2 , minVec, maxVec);
     // segment road
+
     const int maxIters = 100;
     const float distanceThreshold = 0.20;
 
     std::unordered_set<int> inliers = RansacPlane(inputCloud, maxIters, distanceThreshold);
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloudInliers(new pcl::PointCloud<pcl::PointXYZI>());
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloudOutliers(new pcl::PointCloud<pcl::PointXYZI>());
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloudInliers(new pcl::PointCloud<pcl::PointXYZ>());
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudOutliers(new pcl::PointCloud<pcl::PointXYZ>());
 
 	for(int index = 0; index < inputCloud->points.size(); index++)
 	{
-		pcl::PointXYZI point = inputCloud->points[index];
+		pcl::PointXYZ point = inputCloud->points[index];
 		if(inliers.count(index))
         {
 			cloudInliers->points.push_back(point);
@@ -155,53 +214,42 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
         }
 	}
 
-    
-    Eigen::Vector4f minPoint = Eigen::Vector4f(-5, -6, -3, 1); 
-    Eigen::Vector4f maxPoint = Eigen::Vector4f( 5,  6,  2, 1);
+    renderPointCloud(viewer, cloudInliers,"planeCloud",Color(0,1,0));
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloudOutliersF = pointProcessorI->FilterCloud(cloudOutliers, 0.30, minPoint, maxPoint);
-
-    //renderPointCloud(viewer, cloudInliers,"inliers", Color(1,0,0));
-    //renderPointCloud(viewer, cloudOutliers,"outliers",Color(0,1,0));
-    // kd-tree: preparation for clustering
-    
-    
     KdTree* tree = new KdTree;
     const int dims = 2;
-    
-    std::cout << "cloudOutliersFilt->points.size() " << cloudOutliersF->points.size() << std::endl;
-    renderPointCloud(viewer, cloudOutliersF,"outliers",Color(0,1,0));
-      
-    std::vector<std::vector<float>> point_vectors = {};
-    for(int i = 0; i < cloudOutliersF->points.size(); i++)
-    {
-        // convert to vector
-        std::vector<float> point_vec = {0,0,0};
-        cloudOutliersF->points[i].x = point_vec[0];
-        cloudOutliersF->points[i].y = point_vec[1];
-        cloudOutliersF->points[i].z = point_vec[2];
 
-    	tree->insert(point_vec, i);
-        point_vectors.push_back(point_vec);
+    std::vector<std::vector<float>> point_vectors;
+    for (int i = 0; i < cloudOutliers->points.size(); i++)
+    {
+
+        std::vector<float> tmp_vec;
+        tmp_vec.push_back(cloudOutliers->points[i].x);
+        tmp_vec.push_back(cloudOutliers->points[i].y);
+        tmp_vec.push_back(cloudOutliers->points[i].z);
+
+    	tree->insert(tmp_vec, i);
+
+        point_vectors.push_back(tmp_vec);
     }
-    std::cout << "Entering encl " << std::endl;
-    std::vector<std::vector<int>> clusters = euclideanCluster(point_vectors, tree, 0.60);
-    std::cout << "how many clusters were found " << clusters.size() << std::endl;
+
+    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = euclideanCluster(point_vectors, tree, 0.3, 8);
     std::vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
     int clusterId = 0;
-    for(std::vector<int> cluster : clusters)
+    int render_box = 1;
+    for(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : clusters)
   	{
-  		pcl::PointCloud<pcl::PointXYZ>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZ>());
+        std::cout<<"Cluster size: ";
+        pointProcessor->numPoints(cluster);
+        renderPointCloud(viewer, cluster, "obsCloud"+std::to_string(clusterId), colors[clusterId % colors.size()]);
 
-		for (int indice: cluster)
-		{
-  			clusterCloud->points.push_back(pcl::PointXYZ(point_vectors[indice][0],point_vectors[indice][1],point_vectors[indice][2]));
-		}
-  		renderPointCloud(viewer, clusterCloud,"cluster"+std::to_string(clusterId) , colors[clusterId%3]);
-
-  		++clusterId;
+        if(render_box)
+        {
+            Box box = pointProcessor->BoundingBox(cluster);
+            renderBox(viewer, box, clusterId);
+        }
+        clusterId++;
   	}
-    
 }
 
 //setAngle: SWITCH CAMERA ANGLE {XY, TopDown, Side, FPS}

@@ -11,57 +11,6 @@
 #include "kdtree.h"
 //#include "cluster.cpp"
 
-//void clusterHelper(int index,
-//				   const std::vector<std::vector<float>> points,
-//				   std::vector<int> &cluster,
-//				   std::vector<bool> &processed,
-//				   KdTree* tree,
-//				   const float distanceTol
-//				   )
-//{
-//	processed[index] = true;
-//	cluster.push_back(index);
-//
-//	std::vector<int> nearest = tree->search(points[index], distanceTol);
-//
-//	for (int id: nearest)
-//	{
-//		if (!processed[id])
-//		{
-//			clusterHelper(id, points, cluster, processed, tree, distanceTol);
-//		}
-//	}
-//}
-//
-//std::vector<std::vector<int>> euclideanCluster(const //std::vector<std::vector<float>> points, KdTree* tree, float distanceTol)
-//{
-//	// TODO: Fill out this function to return list of indices for each cluster
-//	// list of clusters
-//	std::vector<std::vector<int>> clusters;
-//
-//	std::vector<bool> processed(points.size(), false);
-//	int i = 0;
-//	while (i < points.size())
-//	{
-//		if (processed[i])
-//		{
-//			i++;
-//			continue;
-//		}
-//
-//		std::vector<int> cluster;
-//        std::cout << "in euc points[0] " << points[0].size() << std::endl;
-//		clusterHelper(i, points, cluster, processed, tree, distanceTol);
-//        if (cluster.size() > 8)
-//        {
-//            clusters.push_back(cluster);
-//        }
-//
-//		i++;
-//	}
-//
-//	return clusters;
-//}
 
 
 void createCluster(const std::vector<std::vector<float>>& points, pcl::PointCloud<pcl::PointXYZ>::Ptr &cluster, int *flag, KdTree* tree, float distanceTol, int i)

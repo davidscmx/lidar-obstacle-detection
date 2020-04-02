@@ -1,9 +1,5 @@
 # Lidar Obstacle Detection
 
-## Introduction
-
-This project is part of the Udacity Sensor Fusion Nanodegree. The code has been (will be) modified to meet modularity and coding standars. 
-
 ## Steps
 
 The steps of the obstacle detection project are as follows:

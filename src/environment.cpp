@@ -1,20 +1,23 @@
-/* \author Aaron Brown */
-// Create simple 3d highway enviroment using PCL
-// for exploring self-driving car sensors
+/* 
+  Create simple 3d highway enviroment using PCL
+  for exploring self-driving car sensors
+*/
 
 #include "sensors/lidar.h"
 #include "render/render.h"
 #include "processPointClouds.h"
+
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
 #include "ransac.h"
 #include "kdtree.h"
-//#include "cluster.cpp"
+
+using std::vector;
 
 void clusterHelper(int index,
-				   const std::vector<std::vector<float>> points,
-				   std::vector<int> &cluster,
-				   std::vector<bool> &processed,
+				   const vector<vector<float>> points,
+				   vector<int> &cluster,
+				   vector<bool> &processed,
 				   KdTree* tree,
 				   const int distanceTol
 				   )
@@ -22,7 +25,7 @@ void clusterHelper(int index,
 	processed[index] = true;
 	cluster.push_back(index);
 
-	std::vector<int> nearest = tree->search(points[index],distanceTol);
+	vector<int> nearest = tree->search(points[index],distanceTol);
 
 	for (int id: nearest)
 	{
@@ -33,13 +36,14 @@ void clusterHelper(int index,
 	}
 }
 
-std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>> points, KdTree* tree, float distanceTol)
+vector<vector<int>> euclideanCluster(const vector<vector<float>> points, 
+                                     KdTree* tree, 
+                                     float distanceTol)
 {
-	// TODO: Fill out this function to return list of indices for each cluster
 	// list of clusters
-	std::vector<std::vector<int>> clusters;
+	vector<vector<int>> clusters;
 
-	std::vector<bool> processed(points.size(), false);
+	vector<bool> processed(points.size(), false);
 	int i = 0;
 	while (i < points.size())
 	{
@@ -49,7 +53,7 @@ std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<flo
 			continue;
 		}
 
-		std::vector<int> cluster;
+		vector<int> cluster;
 		clusterHelper(i, points, cluster, processed, tree, distanceTol);
 		clusters.push_back(cluster);
 		i++;
@@ -59,8 +63,8 @@ std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<flo
 }
 
 
-std::vector<Car> initHighway(bool renderScene,
-                             pcl::visualization::PCLVisualizer::Ptr &viewer)
+vector<Car> initHighway(bool renderScene,
+                        pcl::visualization::PCLVisualizer::Ptr &viewer)
 {
 
     Car egoCar( Vect3(0,0,0), Vect3(4,2,2), Color(0,1,0), "egoCar");
@@ -68,7 +72,7 @@ std::vector<Car> initHighway(bool renderScene,
     Car car2( Vect3(8,-4,0), Vect3(4,2,2), Color(0,0,1), "car2");
     Car car3( Vect3(-12,4,0), Vect3(4,2,2), Color(0,0,1), "car3");
 
-    std::vector<Car> cars;
+    vector<Car> cars;
     cars.push_back(egoCar);
     cars.push_back(car1);
     cars.push_back(car2);
@@ -95,13 +99,14 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
 
     // RENDER OPTIONS
     bool renderScene = false;
-    std::vector<Car> cars = initHighway(renderScene, viewer);
+    vector<Car> cars = initHighway(renderScene, viewer);
     const double slope = 0.0;
-    // TODO:: Create lidar sensor
+
     Lidar * lidar = new Lidar(cars, slope);
     lidar->cloud = lidar->scan();
     //renderRays(viewer, lidar->position, lidar->cloud);
 
+    //std::unordered_set<int> inliers = RansacPlane(inputCloud, maxIters, distanceThreshold);
     ProcessPointClouds<pcl::PointXYZ> *pointProcessor = new ProcessPointClouds<pcl::PointXYZ>();
 
     const int max_iters = 100;
@@ -112,10 +117,10 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
     renderPointCloud(viewer, segmentCloud.first,"obstCloud",Color(1,0,0));
     renderPointCloud(viewer, segmentCloud.second,"planeCloud",Color(0,1,0));
 
-    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloudClusters = pointProcessor->Clustering(segmentCloud.first, 1.0, 3, 30);
+    vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloudClusters = pointProcessor->Clustering(segmentCloud.first, 1.0, 3, 30);
 
     int clusterId = 0;
-    std::vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
+    vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
 
     for(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : cloudClusters)
     {
@@ -129,7 +134,7 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 {
     ProcessPointClouds<pcl::PointXYZI>* pointProcessorI = new ProcessPointClouds<pcl::PointXYZI>();
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("/home/david/onlineLearning/SFND_Lidar_Obstacle_Detection/src/sensors/data/pcd/data_1/0000000000.pcd");
+    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
 
     // segment road
     const int maxIters = 100;
@@ -170,11 +175,11 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 
     //renderPointCloud(viewer, filteredCloudOutliers,"outliers",Color(0,1,0));
 
-    std::vector<std::vector<float>> point_vectors = {};
+    vector<vector<float>> point_vectors = {};
     for(int i = 0; i < filteredCloudOutliers->points.size(); i++)
     {
         // convert to vector
-        std::vector<float> point_vec = {0,0,0};
+        vector<float> point_vec = {0,0,0};
         filteredCloudOutliers->points[i].x = point_vec[0];
         filteredCloudOutliers->points[i].y = point_vec[1];
         filteredCloudOutliers->points[i].z = point_vec[2];
@@ -183,11 +188,11 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
         point_vectors.push_back(point_vec);
     }
 
-    std::vector<std::vector<int>> clusters = euclideanCluster(point_vectors, tree, 0.75);
-    std::cout << "how many clusters were found " << clusters.size() << std::endl;
-    std::vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
+    vector<vector<int>> clusters = euclideanCluster(point_vectors, tree, 0.75);
+    std::cout << "# of clusters found: " << clusters.size() << std::endl;
+    vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
     int clusterId = 0;
-    for(std::vector<int> cluster : clusters)
+    for(vector<int> cluster : clusters)
   	{
   		pcl::PointCloud<pcl::PointXYZ>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZ>());
 
@@ -196,7 +201,6 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
   			clusterCloud->points.push_back(pcl::PointXYZ(point_vectors[indice][0],point_vectors[indice][1],point_vectors[indice][2]));
 		}
   		renderPointCloud(viewer, clusterCloud,"cluster"+std::to_string(clusterId) , colors[clusterId%3]);
-
   		++clusterId;
   	}
 
@@ -220,20 +224,25 @@ void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr &vi
     }
 
     if(setAngle!=FPS)
+    {
         viewer->addCoordinateSystem (1.0);
+    }
 }
 
 
 int main (int argc, char** argv)
 {
-    pcl::visualization::PCLVisualizer::Ptr viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
+    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
 
+    // TopDown, Side, FPS
     CameraAngle setAngle = XY;
-
     initCamera(setAngle, viewer);
+    
+    // draws a simple highway with a road, an ego vehicle and 3 cars
+    simpleHighway(viewer);
 
-    cityBlock(viewer);
-
+    // This is the important function which does clustering
+    //cityBlock()
     while (!viewer->wasStopped ())
     {
         viewer->spinOnce ();

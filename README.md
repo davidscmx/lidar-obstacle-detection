@@ -7,9 +7,14 @@ This project is part of the Udacity Sensor Fusion Nanodegree. The code has been 
 ## Steps
 
 The steps of the obstacle detection project are as follows:
-1. Distinguish between the road and the "obstacles"
-   This is done with a plane-fitting algorithm with used the Random Sample Concensus algorithm to fit a plane. This separates 
+
+1. Distinguish between the road and the "obstacles".
+   This is accomplished with a plane-fitting algorithm with used the Random Sample Concensus (RANSAC) algorithm to fit a plane to the road. This separates 
    the road from the objects on the road. 
+
+2. Add all outliers to the Kd-tree structure
+
+3. Cluster the outliers
 
 <img src="./media/ObstacleDetectionFPS.gif" width="700" height="400" />
 

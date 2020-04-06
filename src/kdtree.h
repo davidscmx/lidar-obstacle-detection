@@ -1,10 +1,21 @@
+/**
+ * @file kdtree.h
+ * @author Aaron Brown 
+ *
+ * @brief 
+ * @version 0.1
+ * @date 2020-04-06
+ * 
+ *
+ * 
+ */
+
 #ifndef KD_TREE_H
 #define KD_TREE_H
-/* \author Aaron Brown */
 
 #include "render/render.h"
-// Structure to represent node of kd tree
 
+// Structure to represent node of kd tree
 struct Node
 {
 	std::vector<float> point;

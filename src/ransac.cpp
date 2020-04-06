@@ -2,7 +2,7 @@
 
 #include "ransac.h"
 
-std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,const int maxIterations, const float distanceTol)
+std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,const int maxIterations, const float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
@@ -54,7 +54,7 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,c
 				continue;
 			}
 
-			pcl::PointXYZI point = cloud->points[i];
+			pcl::PointXYZ point = cloud->points[i];
 			float x4 = point.x;
 			float y4 = point.y;
 			float z4 = point.z;

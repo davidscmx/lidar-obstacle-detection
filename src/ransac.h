@@ -22,5 +22,6 @@
  * @return std::unordered_set<int> 
  */
 
-std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,                                     const int maxIterations,
+std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+                                    const int maxIterations,
                                     const float distanceTol);

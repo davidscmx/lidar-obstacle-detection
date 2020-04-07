@@ -1,59 +1,64 @@
 /* \author Aaron Brown */
+#include "cluster.h"
 
-
-#include <chrono>
-#include <string>
-#include <iostream>
-#include <vector>
-#include "kdtree.h"
-
-
-void clusterHelper(int index,
-				   const std::vector<std::vector<float>> points,
-				   std::vector<int> &cluster,
-				   std::vector<bool> &processed,
-				   KdTree* tree,
-				   const int distanceTol
-				   )
+void createCluster(const vector<vector<float>>& points, 
+                   PointCloud<PointXYZ>::Ptr &cluster, 
+                   int *flag, KdTree* tree, float distanceTol, int i)
 {
-	processed[index] = true;
-	cluster.push_back(index);
+    if(flag[i] == 1)
+    {
+        return;
+    }
+        
+    flag[i] = 1;
 
-	std::vector<int> nearest = tree->search(points[index],distanceTol);
+    PointXYZ z = {points[i][0], points[i][1], points[i][2]};
+    cluster->points.push_back(z);
 
-	for (int id: nearest)
-	{
-		if (!processed[id])
+    vector<int> nearPoint = tree->search(points[i], distanceTol);
+
+    for(int i=0;i<nearPoint.size();i++)
+    {
+        if(flag[nearPoint[i]] == 0)
 		{
-			clusterHelper(id, points, cluster, processed, tree, distanceTol);
+            createCluster(points, cluster, flag, tree, distanceTol, nearPoint[i]);
 		}
-	}
+    }
 }
 
-std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>> points,
-											   KdTree* tree, float distanceTol)
+vector<PointCloud<PointXYZ>::Ptr> euclideanCluster(const vector<vector<float>>& points, 
+                                                   KdTree* tree, float distanceTol, int minSize)
 {
-	// Return list of indices for each cluster
-	// list of clusters
-	std::vector<std::vector<int>> clusters;
-	std::vector<bool> processed(points.size(), false);
-	int i = 0;
-	while (i < points.size())
-	{
-		if (processed[i])
-		{
-			i++;
-			continue;
-		}
+    // Inserting point into KD-Tree
+    for (int i=0; i<points.size(); i++)
+    {
+        tree->insert(points[i],i);
+    }
 
-		std::vector<int> cluster;
-		clusterHelper(i, points, cluster, processed, tree, distanceTol);
-		clusters.push_back(cluster);
-		i++;
-	}
+    vector<PointCloud<PointXYZ>::Ptr> clusters;
 
-	return clusters;
+    int size = points.size();
+    int flag[size];
+
+    for(int i=0;i<size;i++)
+    {
+        flag[i] = 0;
+    }
+
+    for(int i=0;i<size;i++)
+    {
+        PointCloud<PointXYZ>::Ptr cluster(new PointCloud<PointXYZ>);
+
+        if(flag[i] == 0)
+        {
+            createCluster(points, cluster, flag, tree, distanceTol, i);
+            if(cluster->points.size() >= minSize)
+                clusters.push_back(cluster);
+        }
+    }
+    return clusters;
 }
+
 
 //int main ()
 //{

@@ -14,7 +14,9 @@
 #include <vector>
 #include "kdtree.h"
 
-
+using std::vector;
+using pcl::PointCloud;
+using pcl::PointXYZ;
 
 void createCluster(const vector<vector<float>>& points, 
                    PointCloud<PointXYZ>::Ptr &cluster, 

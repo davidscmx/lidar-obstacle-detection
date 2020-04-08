@@ -30,11 +30,12 @@ vector<PointCloud<PointXYZ>::Ptr> euclideanCluster(const vector<vector<float>>& 
                                                    KdTree* tree, float distanceTol, int minSize)
 {
     // Inserting point into KD-Tree
-    for (int i=0; i<points.size(); i++)
+    for (int i=0; i < points.size(); i++)
     {
         tree->insert(points[i],i);
     }
 
+	// a vector of pointcloud pointers
     vector<PointCloud<PointXYZ>::Ptr> clusters;
 
     int size = points.size();
@@ -53,7 +54,9 @@ vector<PointCloud<PointXYZ>::Ptr> euclideanCluster(const vector<vector<float>>& 
         {
             createCluster(points, cluster, flag, tree, distanceTol, i);
             if(cluster->points.size() >= minSize)
+			{
                 clusters.push_back(cluster);
+			}
         }
     }
     return clusters;

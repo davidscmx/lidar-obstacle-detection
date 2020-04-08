@@ -130,15 +130,19 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer,
         tmp_vec.push_back(cloudOutliers->points[i].y);
         tmp_vec.push_back(cloudOutliers->points[i].z);
 
+        // insert vector in the kd-tree 
     	tree->insert(tmp_vec, i);
 
         point_vectors.push_back(tmp_vec);
     }
-
+    
     vector<PointCloud<PointXYZ>::Ptr> clusters = euclideanCluster(point_vectors, tree, 0.3, 8);
+    
     vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
     int clusterId = 0;
     int render_box = 1;
+
+    // loop over the found cluster and draw a bounding box around it
     for(PointCloud<PointXYZ>::Ptr cluster : clusters)
   	{
         renderPointCloud(viewer, cluster, "obsCloud"+std::to_string(clusterId), colors[clusterId % colors.size()]);
@@ -174,7 +178,6 @@ void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr &vi
         viewer->addCoordinateSystem (1.0);
     }
 }
-
 
 int main (int argc, char** argv)
 {

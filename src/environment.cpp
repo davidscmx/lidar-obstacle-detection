@@ -17,7 +17,7 @@ using std::vector;
 using pcl::PointCloud;
 using pcl::PointXYZ;
 
-vector<Car> initHighway(bool renderScene,
+vector<Car> initSimpleHighway(bool renderScene,
                         pcl::visualization::PCLVisualizer::Ptr &viewer)
 {
 
@@ -45,7 +45,7 @@ vector<Car> initHighway(bool renderScene,
 }
 
 
-void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
+void createSimpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
 {
     // ----------------------------------------------------
     // -----Open 3D viewer and display simple highway -----
@@ -53,7 +53,7 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
 
     // RENDER OPTIONS
     bool renderScene = false;
-    vector<Car> cars = initHighway(renderScene, viewer);
+    vector<Car> cars = initSimpleHighway(renderScene, viewer);
     const double slope = 0.0;
 
     Lidar * lidar = new Lidar(cars, slope);
@@ -181,34 +181,59 @@ void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr &vi
 
 int main (int argc, char** argv)
 {
-    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
-
+    if (argc <= 1)
+	{
+	
+		if (argv[0])
+        {
+			std::cout << "Usage: " << argv[0] << " <number>" << '\n';
+        }
+        else
+        {
+			std::cout << "Usage: <program name> <number>" << '\n';
+        }
+	}
+    
+    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
     // TopDown, Side, FPS
-    CameraAngle setAngle = XY;
+    CameraAngle setAngle = FPS;
     initCamera(setAngle, viewer);
     
-    ProcessPointClouds<PointXYZ>* pointProcessor = new ProcessPointClouds<PointXYZ>();
-	vector<boost::filesystem::path> stream = pointProcessor->streamPcd("../src/sensors/data/pcd/data_1");
-	auto streamIterator = stream.begin();
-	PointCloud<PointXYZ>::Ptr inputCloud;
+    char *action = argv[1];
+    if (std::strcmp(action,"stream") == 0)
+    {    
+        ProcessPointClouds<PointXYZ>* pointProcessor = new ProcessPointClouds<PointXYZ>();
+	    vector<boost::filesystem::path> stream = pointProcessor->streamPcd("../src/sensors/data/pcd/data_2");
+	    auto streamIterator = stream.begin();
+	    PointCloud<PointXYZ>::Ptr inputCloud;
     
-    while (!viewer->wasStopped ())
-    {
-
-        // Clear viewer
-		viewer->removeAllPointClouds();
-		viewer->removeAllShapes();
-
-        // Load pcd and run obstacle detection process
-        inputCloud = pointProcessor->loadPcd((*streamIterator).string());
-		cityBlock(viewer, pointProcessor, inputCloud);
-
-        streamIterator++;
-		if(streamIterator == stream.end())
+        while (!viewer->wasStopped ())
         {
-            streamIterator = stream.begin();
-        }
+            // Clear viewer
+		    viewer->removeAllPointClouds();
+		    viewer->removeAllShapes();
+
+            // Load pcd and run obstacle detection process
+            inputCloud = pointProcessor->loadPcd((*streamIterator).string());
+		    cityBlock(viewer, pointProcessor, inputCloud);
+
+            streamIterator++;
+		    if(streamIterator == stream.end())
+            {
+                streamIterator = stream.begin();
+            }
 			
-        viewer->spinOnce ();
+            viewer->spinOnce ();
+        }
     }
+    
+    else if (std::strcmp(action,"simple")==0)
+    {
+        createSimpleHighway(viewer);
+        while (!viewer->wasStopped ())
+        {
+            viewer->spinOnce();
+        }
+    }       
+             
 }

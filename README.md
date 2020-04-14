@@ -4,13 +4,14 @@
 
 The steps of the obstacle detection project are as follows:
 
-1. Distinguish between the road and the "obstacles".
-   This is accomplished with a plane-fitting algorithm with used the Random Sample Concensus (RANSAC) algorithm to fit a plane to the road. This separates 
-   the road from the objects on the road. 
+1. Understand the what is the road and what are the obstacles. 
+This is achieved by using the Planar Segmentation method which uses 
+the Random Sample Consensus (RANSAC) algorithm.
 
-2. Add all outliers to the Kd-tree structure
+2. After figuring out which points belong to the road and which do not, 
+we go ahead cluster points within a given tolerance which do not belong to the road. 
 
-3. Cluster the outliers
+3. Finally we draw 3D bounding boxes around the clustered points.
 
 <img src="./media/ObstacleDetectionFPS.gif" width="700" height="400" />
 

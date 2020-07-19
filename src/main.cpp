@@ -9,7 +9,7 @@
 
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
-#include "ransac.h"envir
+#include "ransac.h"
 #include "kdtree.h"
 #include "cluster.h"
 

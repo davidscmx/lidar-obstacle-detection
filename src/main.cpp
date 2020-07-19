@@ -9,20 +9,20 @@
 
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
-#include "ransac.h"
+#include "ransac.h"envir
 #include "kdtree.h"
 #include "cluster.h"
 
 using std::vector;
 using pcl::PointCloud;
 using pcl::PointXYZ;
+using pcl::visualization::PCLVisualizer;// Usage: pcl::visualization::PCLVisualizer
 
-vector<Car> initSimpleHighway(bool renderScene,
-                        pcl::visualization::PCLVisualizer::Ptr &viewer)
+vector<Car> initSimpleHighway(bool renderScene, PCLVisualizer::Ptr &viewer)
 {
 
-    Car egoCar( Vect3(0,0,0), Vect3(4,2,2), Color(0,1,0), "egoCar");
-    Car car1( Vect3(15,0,0), Vect3(4,2,2), Color(0,0,1), "car1");
+    Car egoCar( Vect3(0,0,0), Vect3(4,2,2), Color(0,1,0), "egoCar"); // green
+    Car car1( Vect3(15,0,0), Vect3(4,2,2), Color(0,0,1), "car1"); // lue
     Car car2( Vect3(8,-4,0), Vect3(4,2,2), Color(0,0,1), "car2");
     Car car3( Vect3(-12,4,0), Vect3(4,2,2), Color(0,0,1), "car3");
 
@@ -45,14 +45,14 @@ vector<Car> initSimpleHighway(bool renderScene,
 }
 
 
-void createSimpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
+void createSimpleHighway(PCLVisualizer::Ptr &viewer, bool renderScene)
 {
     // ----------------------------------------------------
     // -----Open 3D viewer and display simple highway -----
     // ----------------------------------------------------
 
     // RENDER OPTIONS
-    bool renderScene = false;
+     
     vector<Car> cars = initSimpleHighway(renderScene, viewer);
     const double slope = 0.0;
 
@@ -84,7 +84,7 @@ void createSimpleHighway(pcl::visualization::PCLVisualizer::Ptr &viewer)
     }
 }
 
-void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, 
+void cityBlock(PCLVisualizer::Ptr& viewer, 
                ProcessPointClouds<PointXYZ>* pointProcessor, 
                PointCloud<PointXYZ>::Ptr& inputCloud)
 {
@@ -157,7 +157,8 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer,
 }
 
 //setAngle: SWITCH CAMERA ANGLE {XY, TopDown, Side, FPS}
-void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr &viewer)
+void initCamera(CameraAngle setAngle, 
+                PCLVisualizer::Ptr &viewer)
 {
     viewer->setBackgroundColor (0, 0, 0);
     // set camera position and angle
@@ -186,24 +187,25 @@ int main (int argc, char** argv)
 	
 		if (argv[0])
         {
-			std::cout << "Usage: " << argv[0] << " <number>" << '\n';
+			std::cout << "Usage: " << argv[0] << "[stream, simple]" << '\n';
         }
         else
         {
-			std::cout << "Usage: <program name> <number>" << '\n';
+			std::cout << "Usage: ./main [stream, simple]" << '\n';
         }
 	}
     
-    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+    PCLVisualizer::Ptr viewer(new PCLVisualizer("3D Viewer"));
     // TopDown, Side, FPS
     CameraAngle setAngle = FPS;
     initCamera(setAngle, viewer);
     
     char *action = argv[1];
+    char *action_opt1 = argv[2];
     if (std::strcmp(action,"stream") == 0)
     {    
         ProcessPointClouds<PointXYZ>* pointProcessor = new ProcessPointClouds<PointXYZ>();
-	    vector<boost::filesystem::path> stream = pointProcessor->streamPcd("../src/sensors/data/pcd/data_2");
+	    vector<boost::filesystem::path> stream = pointProcessor->streamPcd("../src/sensors/data/pcd/data_1");
 	    auto streamIterator = stream.begin();
 	    PointCloud<PointXYZ>::Ptr inputCloud;
     
@@ -229,7 +231,15 @@ int main (int argc, char** argv)
     
     else if (std::strcmp(action,"simple")==0)
     {
-        createSimpleHighway(viewer);
+        bool renderSceneFlag = false; 
+        
+        if (std::strcmp(action_opt1,"renderScene")==0)
+        {
+            renderSceneFlag = true;
+        }
+
+        createSimpleHighway(viewer, renderSceneFlag);
+        
         while (!viewer->wasStopped ())
         {
             viewer->spinOnce();
